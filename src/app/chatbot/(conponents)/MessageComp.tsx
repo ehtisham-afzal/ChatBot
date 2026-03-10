@@ -15,23 +15,27 @@ const MessageComp = ({ MessageData }: { MessageData: MessageCompProps }) => {
 
   return (
     <div
-      className={`flex w-full ${role === "bot" ? "items-end justify-start space-x-2 pr-[10%] sm:pr-[20%]" : "sm:pl-[20%]] items-start justify-end pl-[10%]"}`}
+      className={`flex w-full animate-fade-in ${role === "bot" ? "items-end justify-start space-x-2 pr-[10%] sm:pr-[20%]" : "items-start justify-end pl-[10%] sm:pl-[20%]"}`}
     >
       {role === "bot" && (
-        <Avatar className="size-9 border border-muted-foreground bg-secondary p-1 mb-6">
+        <Avatar className="mb-6 size-9 shrink-0 border border-muted-foreground/30 bg-secondary p-1">
           <AvatarImage src="/Bot.png" alt={"bot Image"} />
           <AvatarFallback>BT</AvatarFallback>
         </Avatar>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         <div
-          className={`${role === "bot" ? "bg-primary text-secondary dark:prose-stone rounded-bl-none" : " bg-blue-500 text-white prose-p:my-2 rounded-br-none"} prose prose-sm prose-invert h-fit rounded-lg  border px-4 shadow sm:prose-base`}
+          className={`${
+            role === "bot"
+              ? "rounded-bl-none bg-primary text-secondary dark:prose-stone"
+              : "rounded-br-none bg-blue-600 text-white prose-p:my-2"
+          } prose prose-sm prose-invert h-fit rounded-xl border px-4 shadow-sm sm:prose-base`}
         >
           <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
         </div>
-        <div className="flex items-center space-x-2 px-2 text-xs text-muted-foreground justify-between">
+        <div className="flex items-center justify-between gap-2 px-1 text-xs text-muted-foreground">
           {role === "bot" && <MessageActions message={message} />}
-          <span>{time}</span>
+          <span className={role === "user" ? "ml-auto" : ""}>{time}</span>
         </div>
       </div>
     </div>
