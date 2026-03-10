@@ -1,15 +1,21 @@
 "use client";
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import MessageComp from "./MessageComp";
-import { ArrowUp, PaperclipIcon } from "lucide-react";
+import { ArrowUp, PaperclipIcon, SparklesIcon } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { useState } from "react";
+
+type Message = {
+  role: string;
+  message: string;
+  time: string;
+  messageId: string;
+};
 
 export default function MessagesAndFooter() {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       role: "bot",
       message: "#### Welcome to chatbot.co, how can I help you?",
@@ -45,103 +51,140 @@ export default function MessagesAndFooter() {
   ]);
 
   const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Add this ref to the component
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Add this useEffect hook to scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isTyping]);
 
-  // Modify the handleKeyDown function to include the bot response
+  const sendMessage = () => {
+    if (!inputValue.trim()) return;
+
+    const newUserMessage: Message = {
+      role: "user",
+      message: inputValue,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      messageId: Date.now().toString(),
+    };
+    setMessages(prev => [...prev, newUserMessage]);
+    setInputValue("");
+    setIsTyping(true);
+
+    // Simulate bot response
+    setTimeout(() => {
+      setIsTyping(false);
+      const botResponse: Message = {
+        role: "bot",
+        message: "This is a simulated bot response.",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        messageId: (Date.now() + 1).toString(),
+      };
+      setMessages(prev => [...prev, botResponse]);
+    }, 1500);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      if (!e.shiftKey) {
-        e.preventDefault();
-        if (inputValue.trim()) {
-          const newUserMessage = {
-            role: "user",
-            message: inputValue,
-            time: new Date().toLocaleTimeString(),
-            messageId: Date.now().toString(),
-          };
-          setMessages(prevMessages => [...prevMessages, newUserMessage]);
-          setInputValue("");
-          
-          // Simulate bot response (replace this with actual API call)
-          setTimeout(() => {
-            const botResponse = {
-              role: "bot",
-              message: "This is a simulated bot response.",
-              time: new Date().toLocaleTimeString(),
-              messageId: (Date.now() + 1).toString(),
-            };
-            setMessages(prevMessages => [...prevMessages, botResponse]);
-          }, 1000);
-        }
-      } else {
-        // Allow Shift+Enter for new line
-        setInputValue(prevValue => prevValue + '\n');
-      }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
   };
-  
+
   return (
     <>
-      <ScrollArea className=" h-full max-h-full px-3 pb-16">
+      <ScrollArea className="h-full max-h-full px-3 pb-16">
         {/* ChatBot Avatar */}
-        <div className="flex h-full flex-col items-center justify-center space-y-4 pb-20 pt-5">
-          <Avatar className="h-20 w-20 border-2 border-muted-foreground bg-secondary p-2">
-            <AvatarImage src="/Bot.png" alt="ChatBot" />
-            <AvatarFallback>CB</AvatarFallback>
-          </Avatar>
-          <h2 className="text-2xl font-bold">Chatbot</h2>
-          <p className="text-center text-muted-foreground">
-            Our virtual assistant is here to help you.
-          </p>
+        <div className="flex h-full flex-col items-center justify-center space-y-3 pb-16 pt-8 animate-fade-in">
+          <div className="relative">
+            <Avatar className="h-16 w-16 border-2 border-muted-foreground/30 bg-secondary p-2 shadow-md">
+              <AvatarImage src="/Bot.png" alt="ChatBot" />
+              <AvatarFallback>CB</AvatarFallback>
+            </Avatar>
+            <span className="absolute bottom-0.5 right-0.5 flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60"></span>
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500 border-2 border-background"></span>
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <h2 className="text-xl font-bold">Chatbot</h2>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <SparklesIcon className="h-3 w-3 text-blue-400" />
+              <span>AI-powered assistant, here to help you</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-center gap-2 pt-1">
+            {["Explain a concept", "Write some code", "Summarize text"].map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => setInputValue(suggestion)}
+                className="rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ChatBot Messages */}
-        <div className="flex flex-1 flex-col space-y-2">
+        <div className="flex flex-1 flex-col space-y-3">
           {messages.map((message) => (
             <MessageComp key={message.messageId} MessageData={message} />
           ))}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="flex items-end space-x-2 pr-[10%] sm:pr-[20%] animate-fade-in">
+              <Avatar className="size-9 border border-muted-foreground/30 bg-secondary p-1 mb-6">
+                <AvatarImage src="/Bot.png" alt="bot Image" />
+                <AvatarFallback>BT</AvatarFallback>
+              </Avatar>
+              <div className="rounded-lg rounded-bl-none border bg-primary px-4 py-3 shadow">
+                <div className="flex items-center gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="inline-block h-2 w-2 rounded-full bg-secondary animate-bounce-dot"
+                      style={{ animationDelay: `${i * 0.2}s` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        {/* for space to show the buttons */}
-        <div className="block h-4 w-full" />
+
+        <div ref={messagesEndRef} className="block h-4 w-full" />
         <ScrollBar orientation="vertical" />
       </ScrollArea>
-      <footer className="absolute bottom-4 flex w-[97%] items-end self-center rounded-[30px] bg-primary px-3 py-2 shadow-sm border">
-        <PaperclipIcon className="mb-2 h-5 w-5 text-muted-foreground" />
+
+      {/* Input footer */}
+      <footer className="absolute bottom-3 flex w-[97%] items-end self-center overflow-hidden rounded-2xl border bg-background shadow-md transition-shadow focus-within:shadow-lg focus-within:border-blue-500/40">
+        <button
+          type="button"
+          className="mb-2.5 ml-3 flex h-5 w-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Attach file"
+        >
+          <PaperclipIcon className="h-4 w-4" />
+        </button>
         <textarea
-          // type="text"
-          onKeyDown={(e) => handleKeyDown(e)}
+          onKeyDown={handleKeyDown}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           rows={1}
           dir="auto"
-          placeholder="What is meaning of Accessibility"
-          className="mx-4 mb-2 h-full max-h-[25dvh] min-h-full flex-1 resize-y bg-transparent text-secondary focus:outline-none"
+          placeholder="Ask me anything…"
+          className="mx-3 mb-2.5 h-full max-h-[25dvh] min-h-full flex-1 resize-none bg-transparent text-sm focus:outline-none"
         />
         <Button
           size="sm"
-          variant="secondary"
-          className="flex h-10 w-10 items-center justify-center rounded-full p-0"
-          onClick={() => {
-            setMessages([
-              ...messages,
-              {
-                role: "user",
-                message: inputValue,
-                time: new Date().toLocaleTimeString(),
-                messageId: new Date().getTime().toString(),
-              },
-            ]);
-            setInputValue("");
-          }}
+          variant={inputValue.trim() ? "default" : "secondary"}
+          disabled={!inputValue.trim() || isTyping}
+          className="mb-2 mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 transition-all"
+          onClick={sendMessage}
         >
-          <ArrowUp className="h-5 w-5" />
+          <ArrowUp className="h-4 w-4" />
         </Button>
       </footer>
     </>

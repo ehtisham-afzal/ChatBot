@@ -3,24 +3,44 @@
 import type { SVGProps } from "react";
 import { signIn } from "next-auth/react";
 import { Novatrix, Zenitho } from "uvcanvas";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon, SparklesIcon } from "lucide-react";
 
 export default function Page() {
   return (
-    <div className="min-h-[800px] h-dvh px-2 w-full lg:grid lg:grid-cols-2 content-center justify-center">
+    <div className="relative min-h-[800px] h-dvh w-full content-center px-2 lg:grid lg:grid-cols-2">
+      {/* Left panel (form) */}
       <div className="flex items-center justify-center py-12">
         <div className="absolute inset-0 block lg:hidden [&_canvas]:h-[100vh] [&_canvas]:w-[100vw]">
           <Zenitho />
         </div>
-        <div className="relative mx-auto  grid w-[350px] gap-6 rounded-lg bg-background px-4 py-8">
-          <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">Login</h1>
-            <p className="text-balance text-muted-foreground">
-              Authenticate with a common provider
+
+        <div className="relative mx-auto grid w-[360px] gap-6 rounded-2xl border border-border/60 bg-background/95 px-6 py-8 shadow-xl backdrop-blur-md">
+          {/* Back link */}
+          <Link
+            href="/"
+            className="flex w-fit items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeftIcon className="h-3 w-3" />
+            Back to home
+          </Link>
+
+          {/* Header */}
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-400">
+              <SparklesIcon className="h-3 w-3" />
+              <span>AI-powered chat assistant</span>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+            <p className="text-sm text-muted-foreground">
+              Sign in with your preferred provider to continue
             </p>
           </div>
-          <div className="grid gap-4">
+
+          {/* Auth buttons */}
+          <div className="grid gap-3">
             <Button
               onClick={() =>
                 signIn("discord", {
@@ -28,10 +48,10 @@ export default function Page() {
                 })
               }
               variant="outline"
-              className="w-full"
+              className="w-full gap-2 transition-colors hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-400"
             >
-              <Discord className="mr-2 h-4 w-4" />
-              Login with Discord
+              <Discord className="h-4 w-4" />
+              Continue with Discord
             </Button>
             <Button
               onClick={() =>
@@ -40,16 +60,29 @@ export default function Page() {
                 })
               }
               variant="outline"
-              className="w-full"
+              className="w-full gap-2 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400"
             >
-              <Google className="mr-2 h-4 w-4" />
-              Login with Google
+              <Google className="h-4 w-4" />
+              Continue with Google
             </Button>
           </div>
+
+          <p className="text-center text-xs text-muted-foreground">
+            By continuing, you agree to our{" "}
+            <Link href="#" className="underline underline-offset-4 hover:text-foreground">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="#" className="underline underline-offset-4 hover:text-foreground">
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
-      <div className="hidden lg:block [&_canvas]:rounded-lg aspect-[0.9] max-h-[90dvh]">
-      <Novatrix />
+
+      {/* Right panel (canvas animation) */}
+      <div className="hidden lg:block [&_canvas]:rounded-xl aspect-[0.9] max-h-[90dvh]">
+        <Novatrix />
       </div>
     </div>
   );
